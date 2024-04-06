@@ -1,21 +1,13 @@
 import { Field, Form, Formik } from "formik";
 import { nanoid } from "nanoid";
 import * as Yup from 'yup';
-import css from './ContactForm.module.css'
+import css from './ContactForm.module.css';
+import { store } from "../../redux/store";
+import { addContact } from "../../redux/contactsSlice";
 
-export const ContactForm = ({ setContacts }) => {
 
-    const updateContacts = (name, number) => {
-        setContacts(prevContacts => ([
-            ...prevContacts,
-            {
-                id: nanoid(),
-                name: `${name}`,
-                number: `${number}`
-            }
-        ]));
-    };
 
+export const ContactForm = () => {
     const validationSchema = Yup.object({
         name: Yup.string()
             .required('Name is required')
@@ -27,6 +19,11 @@ export const ContactForm = ({ setContacts }) => {
             .max(50, 'Number cannot exceed 50 characters')
     });
 
+    const handleSubmit = (values, actions) => {
+        store.dispatch(addContact({ id: nanoid(), name: values.name, number: values.number }))
+        actions.resetForm()
+    };
+
     return (
         <Formik
             initialValues={{
@@ -34,14 +31,10 @@ export const ContactForm = ({ setContacts }) => {
                 number: ""
             }}
             validationSchema={validationSchema}
-            onSubmit={(values, actions) => {
-                updateContacts(values.name, values.number);
-                actions.resetForm();
-            }}
+            onSubmit={handleSubmit}
         >
             {({ errors, touched }) => (
-                <Form
-                    className={css.formContainer}>
+                <Form className={css.formContainer}>
                     <p className={css.formText}>Name</p>
                     <Field name="name" />
                     {errors.name && touched.name && <p>{errors.name}</p>}
